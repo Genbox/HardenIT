@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html lang="en" ng-app="app" ng-controller='Controller'>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harden.it</title>
+
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="lib/angular-bootstrap-toggle/dist/angular-bootstrap-toggle.css" />
+    <link rel="stylesheet" href="lib/seiyria-bootstrap-slider/dist/css/bootstrap-slider.css" />
+    <link rel="stylesheet" href="css/site.css" />
+
+    <script src="lib/angular/angular.js"></script>
+    <script src="lib/jquery/dist/jquery.js"></script>
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <img style="float: left; margin-top: 12px;" height="35" src="images/Firefox_small.png" /> <h3 style="color: gray">&nbsp;&nbsp;Harden.it - Firefox Security Configurator</h3>
+        </div>
+    </div>
+    <div class="container body-content">
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-lg-12">
+                <div class="col-md-4 text-center">
+                    <h4>1. Set Security Level</h4>
+                    <input id="sliderValue"
+                           type="text"
+                           name="sliderValue"
+                           value="0"
+                           data-provide="slider"
+                           data-slider-ticks="[0, 1, 2]"
+                           data-slider-ticks-labels='["Default", "Hardened", "Maximum"]'
+                           data-slider-min="0"
+                           data-slider-max="2"
+                           data-slider-step="1"
+                           data-slider-value="0"
+                           data-slider-tooltip="hide">
+                </div>
+                <div class="col-md-4 text-center">
+                    <h4>2. Customize!</h4>
+                    Select the options you would like to enable or disable.
+                </div>
+                <div class="col-md-4 text-center">
+                    <h4>3. Generate Config</h4>
+                    <button id="generateConfig" class="btn btn-success"><span class="glyphicon glyphicon-download-alt"></span> Download</button>
+                </div>
+                <div class="clearfix"></div>
+                <hr />
+
+                <ul class="nav nav-pills">
+                    <li data-toggle="tab" ng-repeat="item in firefox" ng-class="{'active': $index == 0}">
+                        <a href="#tab-{{ $index }}" data-toggle="tab">{{ item.Name }}</a>
+                    </li>
+                </ul>
+
+                <div id="seaOfControls" class="tab-content">
+                    <div class="tab-pane" ng-class="{'active': tabIndex == 0}" id="tab-{{ tabIndex }}" ng-repeat="(tabIndex, item) in firefox">
+                        <br />
+                        <div class="col-md-2">
+                            <ul class="nav nav-pills nav-stacked">
+                                <li ng-class="{'active': categoryIndex == 0}" ng-repeat="(categoryIndex, category) in item.Categories">
+                                    <a href="#tab-{{tabIndex}}-category-{{ categoryIndex }}" data-toggle="tab">{{ category.Name }}</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="col-md-10">
+                            <div class="tab-content">
+                                <div class="tab-pane" ng-class="{'active': categoryIndex == 0}" id="tab-{{tabIndex}}-category-{{ categoryIndex }}" ng-repeat="(categoryIndex, category) in item.Categories">
+                                    <div class="settingContainer">
+                                        <h4>{{ category.Name }}</h4>
+
+                                        <table class="table table-condensed" ng-repeat="(settingIndex, setting) in category.Settings">
+                                            <tr>
+                                                <td class="col-md-4">
+                                                    <span>{{setting.FriendlyName ? setting.FriendlyName : setting.Name}}</span>
+                                                </td>
+                                                <td class="col-md-6">
+                                                    <div class="pull-right form-group form-inline">
+                                                        <settings-field setting="{{setting}}"></settings-field>
+
+                                                        <button type="button" class="btn btn-default" ng-class="{'disabled': !setting.Description}" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="right" data-content="{{setting.Description}}">
+                                                            <span class="glyphicon glyphicon-question-sign"></span>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <hr />
+        <footer>
+            <p>&copy; 2017 - Ian Qvist</p>
+        </footer>
+    </div>
+
+    <script src="lib/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="lib/downloadjs/download.js"></script>
+    <script src="lib/seiyria-bootstrap-slider/dist/bootstrap-slider.js"></script>
+    <script src="lib/angular-bootstrap-toggle/dist/angular-bootstrap-toggle.js"></script>
+
+    <script language="javascript">
+        $(document).ready(function () {
+            $('[data-toggle="popover"]').popover();
+        });
+
+        var app = angular.module('app', ['ui.toggle']);
+
+        app.controller('Controller', function ($scope, $http) {
+
+            $http.get('data/firefox.json')
+                .then(function (res) {
+                    $scope.firefox = res.data;
+                });
+
+            $scope.securityLevel = 0;
+
+            $('#sliderValue').on('slideStop', function () {
+                $scope.securityLevel = $('#sliderValue').val();
+                $scope.$apply();
+            });
+        });
+
+        app.directive('settingsField', function () {
+            return {
+                restrict: 'E',
+                templateUrl: 'partials/_field.html'
+            };
+        });
+
+        app.directive('booleanField', function () {
+            return {
+                restrict: 'E',
+                templateUrl: 'partials/_boolean.html'
+            };
+        });
+
+        app.directive('stringField', function () {
+            return {
+                restrict: 'E',
+                templateUrl: 'partials/_string.html'
+            };
+        });
+
+        app.directive('integerField', function () {
+            return {
+                restrict: 'E',
+                templateUrl: 'partials/_integer.html'
+            };
+        });
+
+        app.directive('arrayField', function () {
+            return {
+                restrict: 'E',
+                templateUrl: 'partials/_array.html'
+            };
+        });
+
+        $('#generateConfig').click(function () {
+            var matches = [];
+
+            var controls = $("#seaOfControls :input");
+            for (var i = 0; i < controls.length; i++) {
+                if (controls[i].name.indexOf('FSC-') === 0) {
+                    matches.push(controls[i]);
+                }
+            }
+
+            var data = "";
+
+            for (var x = 0; x < matches.length; x++) {
+                var name = matches[x].name.substring(4);
+                var value = matches[x].value;
+
+                if (matches[x].type === "checkbox") {
+                    if (matches[x].checked)
+                        value = true;
+                    else
+                        value = false;
+                }
+
+                if (matches[x].type === "text")
+                    value = "\"" + value + "\"";
+
+                data += "user_perf(\"" + name + "\", " + value + ");\r\n";
+            }
+
+            download(data, "user.js", "application/javascript");
+        });
+
+    </script>
+</body>
+</html>
