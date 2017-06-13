@@ -1,4 +1,4 @@
-[
+var firefoxData = [
   {
     "Name": "API and DOM",
     "Categories": [

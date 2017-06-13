@@ -12,6 +12,7 @@
 
     <script src="js/angular.min.js"></script>
     <script src="js/jquery.min.js"></script>
+    <script src="data/firefox.js"></script>
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -117,10 +118,7 @@
 
         app.controller('Controller', function ($scope, $http) {
 
-            $http.get('data/firefox.json')
-                .then(function (res) {
-                    $scope.firefox = res.data;
-                });
+            $scope.firefox = firefoxData;
 
             $scope.securityLevel = 0;
 
@@ -133,35 +131,31 @@
         app.directive('settingsField', function () {
             return {
                 restrict: 'E',
-                templateUrl: 'partials/_field.html'
+                template: '<boolean-field ng-if="setting.ValueType == \'Boolean\'"></boolean-field>' +
+                            '<integer-field ng-if="setting.ValueType == \'Int32\'"></integer-field>'+
+                            '<string-field ng-if="setting.ValueType == \'String\'"></string-field>'+
+                            '<array-field ng-if="setting.ValueType == \'String[]\'"></array-field>'
             };
         });
 
         app.directive('booleanField', function () {
             return {
                 restrict: 'E',
-                templateUrl: 'partials/_boolean.html'
+                template: '<toggle name="FSC-{{ setting.Name }}"  type="checkbox" ng-model="setting.Values[securityLevel]"></toggle>'
             };
         });
 
         app.directive('stringField', function () {
             return {
                 restrict: 'E',
-                templateUrl: 'partials/_string.html'
+                template: '<input name="FSC-{{ setting.Name }}" type="text" data-setting-type="{{ setting.SettingType }}" class="form-control" style="width: 400px" ng-model="setting.Values[securityLevel]" />'
             };
         });
 
         app.directive('integerField', function () {
             return {
                 restrict: 'E',
-                templateUrl: 'partials/_integer.html'
-            };
-        });
-
-        app.directive('arrayField', function () {
-            return {
-                restrict: 'E',
-                templateUrl: 'partials/_array.html'
+                template: '<input name="FSC-{{setting.Name}}" type="number" data-setting-type="{{ setting.SettingType }}" class="form-control" style="width: 70px;" ng-model="setting.Values[securityLevel]" />'
             };
         });
 
